@@ -1,0 +1,10 @@
+ 
+- hosts: localhost
+  become: yes
+  vars:
+    jenkins_hostname: pop-os
+    docker_users:
+    - jenkins
+  roles:
+    - role: geerlingguy.jenkins
+    - role: geerlingguy.docker
