@@ -1,0 +1,72 @@
+name: Build & Release APK
+
+on:
+  push:
+    branches:
+      - claude/galaxy-fit3-bluetooth-qu811
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build debug APK
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: galaxy-fit3-ctl-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Create Release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0-beta
+          name: "Galaxy Fit3 Controller v1.0.0-beta"
+          body: |
+            ## Galaxy Fit3 BLE Controller
+
+            Android app for connecting to Samsung Galaxy Fit3 via Bluetooth LE on unrooted devices.
+
+            ### Features
+            - BLE scan & connect to Galaxy Fit3
+            - Health data: heart rate (real-time), steps, sleep, SpO2, stress
+            - Send notifications & manage alarms
+            - Device settings: DND, vibration, brightness, watch face
+
+            ### Install
+            1. Download `app-debug.apk` below
+            2. Transfer to your Android device
+            3. Enable "Install from unknown sources" if prompted
+            4. Install and grant Bluetooth + Location permissions
+          files: app/build/outputs/apk/debug/app-debug.apk
+          draft: false
+          prerelease: true
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
