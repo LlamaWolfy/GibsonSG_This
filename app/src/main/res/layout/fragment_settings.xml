@@ -32,7 +32,7 @@
                     android:text="@string/dnd"
                     android:textColor="@color/white"
                     android:textSize="16sp" />
-                <com.google.android.material.switchmaterial.SwitchMaterial
+                <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/switch_dnd"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />

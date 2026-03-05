@@ -51,11 +51,7 @@ class ConnectionManager(private val context: Context) {
         val adapter = (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
         val device = adapter.getRemoteDevice(address)
         _state.value = ConnectionState.CONNECTING
-        gatt = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
-        } else {
-            device.connectGatt(context, false, gattCallback)
-        }
+        gatt = device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
     }
 
     fun disconnect() {
@@ -81,8 +77,14 @@ class ConnectionManager(private val context: Context) {
         gatt?.setCharacteristicNotification(char, true)
         val desc = char.getDescriptor(GattUuids.CCC_DESCRIPTOR)
         if (desc != null) {
-            desc.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-            gatt?.writeDescriptor(desc)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                gatt?.writeDescriptor(desc, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+            } else {
+                @Suppress("DEPRECATION")
+                desc.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                @Suppress("DEPRECATION")
+                gatt?.writeDescriptor(desc)
+            }
         }
         notifyListeners[charUuid] = listener
     }
@@ -131,8 +133,16 @@ class ConnectionManager(private val context: Context) {
             }
             is BleOperation.Write -> {
                 writeCont = op.deferred
-                op.char.value = op.value
-                gatt?.writeCharacteristic(op.char)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    gatt?.writeCharacteristic(
+                        op.char, op.value, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    op.char.value = op.value
+                    @Suppress("DEPRECATION")
+                    gatt?.writeCharacteristic(op.char)
+                }
             }
         }
     }
@@ -174,12 +184,31 @@ class ConnectionManager(private val context: Context) {
             }
         }
 
+        // New API (Android 13+)
+        override fun onCharacteristicRead(
+            g: BluetoothGatt,
+            char: BluetoothGattCharacteristic,
+            value: ByteArray,
+            status: Int
+        ) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                readCont?.complete(value)
+            } else {
+                readCont?.completeExceptionally(RuntimeException("Read failed: $status"))
+            }
+            readCont = null
+            operationComplete()
+        }
+
+        // Legacy API (pre-Android 13)
+        @Deprecated("Deprecated in API 33")
         override fun onCharacteristicRead(
             g: BluetoothGatt,
             char: BluetoothGattCharacteristic,
             status: Int
         ) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
+                @Suppress("DEPRECATION")
                 readCont?.complete(char.value ?: byteArrayOf())
             } else {
                 readCont?.completeExceptionally(RuntimeException("Read failed: $status"))
@@ -202,10 +231,22 @@ class ConnectionManager(private val context: Context) {
             operationComplete()
         }
 
+        // New API (Android 13+)
+        override fun onCharacteristicChanged(
+            g: BluetoothGatt,
+            char: BluetoothGattCharacteristic,
+            value: ByteArray
+        ) {
+            notifyListeners[char.uuid]?.invoke(value)
+        }
+
+        // Legacy API (pre-Android 13)
+        @Deprecated("Deprecated in API 33")
         override fun onCharacteristicChanged(
             g: BluetoothGatt,
             char: BluetoothGattCharacteristic
         ) {
+            @Suppress("DEPRECATION")
             val data = char.value ?: return
             notifyListeners[char.uuid]?.invoke(data)
         }
