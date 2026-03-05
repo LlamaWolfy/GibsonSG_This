@@ -70,8 +70,8 @@ class NotificationsFragment : Fragment() {
                     )
                 )
                 Toast.makeText(requireContext(), "Notification sent", Toast.LENGTH_SHORT).show()
-                binding.etNotifTitle.text?.clear()
-                binding.etNotifBody.text?.clear()
+                binding.etNotifTitle.setText("")
+                binding.etNotifBody.setText("")
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
@@ -93,8 +93,8 @@ class NotificationsFragment : Fragment() {
             try {
                 ns.setAlarm(alarm)
                 loadAlarms()
-                binding.etAlarmHour.text?.clear()
-                binding.etAlarmMinute.text?.clear()
+                binding.etAlarmHour.setText("")
+                binding.etAlarmMinute.setText("")
                 Toast.makeText(requireContext(), "Alarm set", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
