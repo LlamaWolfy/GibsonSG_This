@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_scan"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="@string/scan" />
+    <item
+        android:id="@+id/nav_health"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="@string/health" />
+    <item
+        android:id="@+id/nav_notifications"
+        android:icon="@android:drawable/ic_popup_reminder"
+        android:title="@string/notifications" />
+    <item
+        android:id="@+id/nav_settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:title="@string/settings" />
+</menu>
