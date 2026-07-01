@@ -13,7 +13,10 @@ import android.media.AudioRecord
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pulsewave.visualizer.MainActivity
@@ -35,6 +38,7 @@ class CaptureService : Service() {
         const val EXTRA_RESULT_DATA = "extra_result_data"
         private const val CHANNEL_ID = "pulsewave_capture"
         private const val NOTIFICATION_ID = 42
+        private const val TAG = "CaptureService"
 
         fun startIntent(context: Context, resultCode: Int, data: Intent): Intent =
             Intent(context, CaptureService::class.java).apply {
@@ -83,6 +87,20 @@ class CaptureService : Service() {
             return
         }
         mediaProjection = projection
+
+        // Required: AudioPlaybackCaptureConfiguration.Builder throws
+        // IllegalStateException on a MediaProjection with no registered
+        // callback. Also lets us clean up if the user stops the capture
+        // from the system's screen/audio capture indicator.
+        projection.registerCallback(
+            object : MediaProjection.Callback() {
+                override fun onStop() {
+                    stopSelf()
+                }
+            },
+            Handler(Looper.getMainLooper()),
+        )
+
         startCapture(projection)
     }
 
@@ -97,32 +115,33 @@ class CaptureService : Service() {
     }
 
     private fun captureLoop(projection: MediaProjection) {
-        val config = AudioPlaybackCaptureConfiguration.Builder(projection)
-            .addMatchingUsage(android.media.AudioAttributes.USAGE_MEDIA)
-            .addMatchingUsage(android.media.AudioAttributes.USAGE_GAME)
-            .addMatchingUsage(android.media.AudioAttributes.USAGE_UNKNOWN)
-            .build()
-
-        val format = AudioFormat.Builder()
-            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-            .setSampleRate(sampleRate)
-            .setChannelMask(AudioFormat.CHANNEL_IN_MONO)
-            .build()
-
-        val minBuf = AudioRecord.getMinBufferSize(
-            sampleRate,
-            AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT,
-        )
-        val bufferSize = maxOf(minBuf, fftSize * 2)
-
         val record = try {
+            val config = AudioPlaybackCaptureConfiguration.Builder(projection)
+                .addMatchingUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                .addMatchingUsage(android.media.AudioAttributes.USAGE_GAME)
+                .addMatchingUsage(android.media.AudioAttributes.USAGE_UNKNOWN)
+                .build()
+
+            val format = AudioFormat.Builder()
+                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                .setSampleRate(sampleRate)
+                .setChannelMask(AudioFormat.CHANNEL_IN_MONO)
+                .build()
+
+            val minBuf = AudioRecord.getMinBufferSize(
+                sampleRate,
+                AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT,
+            )
+            val bufferSize = maxOf(minBuf, fftSize * 2)
+
             AudioRecord.Builder()
                 .setAudioFormat(format)
                 .setBufferSizeInBytes(bufferSize)
                 .setAudioPlaybackCaptureConfig(config)
                 .build()
-        } catch (e: SecurityException) {
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start system audio capture", e)
             running = false
             SystemCaptureBus.setCapturing(false)
             return

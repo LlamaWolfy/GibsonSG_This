@@ -4,7 +4,9 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pulsewave.visualizer.ui.settings.VisualizerSettings
@@ -33,12 +35,20 @@ internal fun DrawScope.drawWaveform(waveform: FloatArray, settings: VisualizerSe
         if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
     }
 
-    val strokeWidth = (3f + 4f * settings.density).coerceAtLeast(1f)
-    drawPath(
-        path = path,
-        color = themeAccent(settings.colorTheme),
-        style = Stroke(width = strokeWidth),
+    val coreWidth = (3f + 4f * settings.density).coerceAtLeast(1.5f)
+    val brush = Brush.horizontalGradient(
+        listOf(
+            themeAccent(settings.colorTheme, phase = 0f),
+            themeAccent(settings.colorTheme, phase = 0.5f),
+            themeAccent(settings.colorTheme, phase = 1f),
+        ),
     )
+
+    // Glow pass (flat color, gradients don't matter for a soft halo).
+    val glowColor = themeAccent(settings.colorTheme, phase = 0.5f)
+    drawPath(path, glowColor.copy(alpha = 0.18f), style = Stroke(coreWidth * 3.2f, cap = StrokeCap.Round))
+    drawPath(path, glowColor.copy(alpha = 0.35f), style = Stroke(coreWidth * 1.8f, cap = StrokeCap.Round))
+    drawPath(path, brush = brush, style = Stroke(coreWidth, cap = StrokeCap.Round))
 
     if (settings.mirror) {
         val mirrored = Path()
@@ -49,13 +59,14 @@ internal fun DrawScope.drawWaveform(waveform: FloatArray, settings: VisualizerSe
         }
         drawPath(
             path = mirrored,
-            color = themeAccent(settings.colorTheme, phase = 0.5f).copy(alpha = 0.5f),
-            style = Stroke(width = strokeWidth * 0.7f),
+            brush = brush,
+            alpha = 0.4f,
+            style = Stroke(width = coreWidth * 0.7f, cap = StrokeCap.Round),
         )
     }
 
     drawLine(
-        color = themeAccent(settings.colorTheme).copy(alpha = 0.15f),
+        color = glowColor.copy(alpha = 0.15f),
         start = Offset(0f, midY),
         end = Offset(size.width, midY),
     )

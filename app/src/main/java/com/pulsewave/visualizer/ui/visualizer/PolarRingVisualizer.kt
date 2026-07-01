@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pulsewave.visualizer.ui.settings.VisualizerSettings
@@ -23,6 +24,7 @@ fun PolarRingVisualizer(
         val center = Offset(size.width / 2f, size.height / 2f)
         val baseRadius = min(size.width, size.height) * 0.28f
         val amplitude = baseRadius * 0.6f * settings.density.coerceIn(0.4f, 2f)
+        val accent = themeAccent(settings.colorTheme)
 
         val path = Path()
         for (i in waveform.indices) {
@@ -34,12 +36,22 @@ fun PolarRingVisualizer(
         }
         path.close()
 
+        drawPath(
+            path = path,
+            brush = Brush.radialGradient(
+                colors = listOf(accent.copy(alpha = 0.28f), accent.copy(alpha = 0f)),
+                center = center,
+                radius = (baseRadius + amplitude).coerceAtLeast(1f),
+            ),
+        )
+
         drawCircle(
-            color = themeAccent(settings.colorTheme).copy(alpha = 0.15f),
+            color = accent.copy(alpha = 0.15f),
             radius = baseRadius,
             center = center,
             style = Stroke(width = 2f),
         )
-        drawPath(path = path, color = themeAccent(settings.colorTheme), style = Stroke(width = 4f))
+
+        drawGlowPath(color = accent, path = path, coreWidth = 4f, glowWidth = 16f)
     }
 }

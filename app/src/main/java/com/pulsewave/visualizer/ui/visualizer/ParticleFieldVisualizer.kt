@@ -18,11 +18,14 @@ import kotlin.random.Random
 private class Particle(
     var x: Float,
     var y: Float,
+    var prevX: Float,
+    var prevY: Float,
     var vx: Float,
     var vy: Float,
     var life: Float,
     val maxLife: Float,
     val hueSeed: Float,
+    val sizeSeed: Float,
 )
 
 @Composable
@@ -56,15 +59,18 @@ fun ParticleFieldVisualizer(
                 repeat(spawnCount) {
                     if (particles.size < maxParticles) {
                         val angle = random.nextFloat() * (2 * Math.PI).toFloat()
-                        val speed = 0.15f + treble * 0.6f + random.nextFloat() * 0.15f
+                        val speed = 0.18f + treble * 0.7f + random.nextFloat() * 0.18f
                         particles += Particle(
                             x = 0.5f,
                             y = 0.5f,
+                            prevX = 0.5f,
+                            prevY = 0.5f,
                             vx = kotlin.math.cos(angle) * speed,
                             vy = kotlin.math.sin(angle) * speed,
                             life = 0f,
                             maxLife = 1f + random.nextFloat() * 1.2f,
                             hueSeed = random.nextFloat(),
+                            sizeSeed = 0.6f + random.nextFloat() * 0.8f,
                         )
                     }
                 }
@@ -77,6 +83,14 @@ fun ParticleFieldVisualizer(
                         iterator.remove()
                         continue
                     }
+                    p.prevX = p.x
+                    p.prevY = p.y
+                    // Mild inward pull + drag so particles arc back toward
+                    // center and slow down instead of flying out in flat lines.
+                    val pullX = (0.5f - p.x) * 0.35f
+                    val pullY = (0.5f - p.y) * 0.35f
+                    p.vx = (p.vx + pullX * dt) * 0.985f
+                    p.vy = (p.vy + pullY * dt) * 0.985f
                     p.x += p.vx * dt
                     p.y += p.vy * dt
                 }
@@ -91,13 +105,19 @@ fun ParticleFieldVisualizer(
         tick
         for (p in particles) {
             val lifeRatio = (1f - p.life / p.maxLife).coerceIn(0f, 1f)
-            val color = themeAccent(settings.colorTheme, phase = p.hueSeed).copy(alpha = lifeRatio)
-            val radius = 3f + 9f * lifeRatio
-            drawCircle(
-                color = color,
-                radius = radius,
-                center = Offset(p.x * size.width, p.y * size.height),
+            val color = themeAccent(settings.colorTheme, phase = p.hueSeed)
+            val radius = (3f + 10f * lifeRatio) * p.sizeSeed
+            val center = Offset(p.x * size.width, p.y * size.height)
+            val prevCenter = Offset(p.prevX * size.width, p.prevY * size.height)
+
+            // Short motion trail behind the particle, then a soft glowing orb.
+            drawLine(
+                color = color.copy(alpha = lifeRatio * 0.25f),
+                start = prevCenter,
+                end = center,
+                strokeWidth = radius * 0.8f,
             )
+            drawGlowCircle(color = color.copy(alpha = lifeRatio), center = center, radius = radius)
         }
     }
 }
