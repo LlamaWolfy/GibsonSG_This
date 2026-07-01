@@ -8,6 +8,9 @@ on:
     paths:
       - "LaserFocusViz/**"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -36,3 +39,11 @@ jobs:
         with:
           name: laser-focus-viz-debug-apk
           path: LaserFocusViz/app/build/outputs/apk/debug/*.apk
+
+      - name: Publish APK as release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: laser-focus-viz-debug-latest
+          name: LaserFocusViz debug build
+          body: "Automated debug APK build from commit ${{ github.sha }}."
+          files: LaserFocusViz/app/build/outputs/apk/debug/*.apk
