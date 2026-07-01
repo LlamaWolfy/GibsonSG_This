@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Laser Focus Viz</string>
+    <string name="permission_rationale">Camera access is required to visualize what the autofocus/depth sensor sees.</string>
+    <string name="permission_denied">Camera permission denied. Enable it in system settings to use this app.</string>
+    <string name="mode_depth">Depth sensor mode: rendering live ToF/laser depth map.</string>
+    <string name="mode_focus_fallback">This device has no depth-output camera capability. Showing live autofocus distance instead of a full depth map.</string>
+</resources>
