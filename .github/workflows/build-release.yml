@@ -1,0 +1,88 @@
+name: Build & Release APK
+
+on:
+  push:
+    branches:
+      - claude/android-music-visualizer-4tw07n
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK packages
+        run: |
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.5'
+
+      - name: Create local.properties
+        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+      - name: Generate Gradle wrapper
+        run: gradle wrapper --gradle-version 8.5
+
+      - name: Build debug APK
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pulsewave-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Create Release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0-beta
+          name: "PulseWave v1.0.0-beta"
+          body: |
+            ## PulseWave
+
+            A Jetpack Compose music visualizer for Android.
+
+            ### Features
+            - Six visualizer styles: bar spectrum, waveform, circular pulse, particle field, VU needle, polar ring
+            - Three selectable audio sources: local library playback, microphone, and system/other-app audio capture (Android 10+)
+            - Live tweakable sensitivity, smoothing, density, mirror/symmetry, beat glow, and color themes
+            - Full local music library browser and playback controls (shuffle/repeat/seek)
+
+            ### Install
+            1. Download `app-debug.apk` below
+            2. Transfer to your Android device
+            3. Enable "Install from unknown sources" if prompted
+            4. Install and grant the permissions relevant to the audio source you want to use
+          files: app/build/outputs/apk/debug/app-debug.apk
+          draft: false
+          prerelease: true
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
