@@ -1,5 +1,7 @@
 package com.pulsewave.visualizer.ui.visualizer
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,13 +22,19 @@ fun AudioVisualization(
         if (settings.beatFlash) {
             BeatGlow(spectrum = frame.spectrum, settings = settings, modifier = Modifier.fillMaxSize())
         }
-        when (settings.style) {
-            VisualizerStyle.BARS -> BarSpectrumVisualizer(frame.spectrum, settings, Modifier.fillMaxSize())
-            VisualizerStyle.WAVEFORM -> WaveformVisualizer(frame.waveform, settings, Modifier.fillMaxSize())
-            VisualizerStyle.CIRCULAR -> CircularPulseVisualizer(frame.spectrum, settings, Modifier.fillMaxSize())
-            VisualizerStyle.PARTICLES -> ParticleFieldVisualizer(frame.spectrum, settings, Modifier.fillMaxSize())
-            VisualizerStyle.VU_NEEDLE -> VuNeedleVisualizer(frame.spectrum, settings, Modifier.fillMaxSize())
-            VisualizerStyle.POLAR_RING -> PolarRingVisualizer(frame.waveform, settings, Modifier.fillMaxSize())
+        Crossfade(
+            targetState = settings.style,
+            animationSpec = tween(durationMillis = 350),
+            label = "visualizer-style",
+        ) { style ->
+            when (style) {
+                VisualizerStyle.BARS -> BarSpectrumVisualizer(frame.spectrum, settings, Modifier.fillMaxSize())
+                VisualizerStyle.WAVEFORM -> WaveformVisualizer(frame.waveform, settings, Modifier.fillMaxSize())
+                VisualizerStyle.CIRCULAR -> CircularPulseVisualizer(frame.spectrum, settings, Modifier.fillMaxSize())
+                VisualizerStyle.PARTICLES -> ParticleFieldVisualizer(frame.spectrum, settings, Modifier.fillMaxSize())
+                VisualizerStyle.VU_NEEDLE -> VuNeedleVisualizer(frame.spectrum, settings, Modifier.fillMaxSize())
+                VisualizerStyle.POLAR_RING -> PolarRingVisualizer(frame.waveform, settings, Modifier.fillMaxSize())
+            }
         }
     }
 }

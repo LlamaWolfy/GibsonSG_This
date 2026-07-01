@@ -20,6 +20,8 @@ enum class ColorTheme(val label: String, val primary: Color, val secondary: Colo
     SUNSET("Sunset", Color(0xFFFF7A45), Color(0xFFFFC542)),
     ULTRAVIOLET("Ultraviolet", PulsePurple, PulsePink),
     SPECTRUM_HUE("Spectrum Hue", PulseCyan, PulsePurple),
+    OCEAN("Ocean", Color(0xFF00BCD4), Color(0xFF1565C0)),
+    FIRE("Fire", Color(0xFFFF3D00), Color(0xFFFFC400)),
 }
 
 /**
