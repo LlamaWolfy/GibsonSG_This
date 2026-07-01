@@ -3,6 +3,9 @@
 An Android app that visualizes what a phone's autofocus/laser-assisted depth
 sensor sees, in real time.
 
+Debug APKs are built automatically by CI on every push — see the
+"Build LaserFocusViz APK" GitHub Actions workflow artifacts.
+
 ## How it works
 
 Android does not expose the raw laser-autofocus ranging value through a
