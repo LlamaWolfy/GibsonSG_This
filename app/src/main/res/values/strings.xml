@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">Scribble To-Do</string>
+
+    <string name="nav_list">List</string>
+    <string name="nav_kanban">Board</string>
+    <string name="nav_calendar">Calendar</string>
+    <string name="nav_search">Search</string>
+
+    <string name="action_add_task">Add task</string>
+    <string name="action_new_note">New note</string>
+    <string name="action_ink_mode_on">Enter ink mode</string>
+    <string name="action_ink_mode_off">Exit ink mode</string>
+    <string name="action_undo">Undo</string>
+
+    <string name="smart_list_today">Today</string>
+    <string name="smart_list_overdue">Overdue</string>
+    <string name="smart_list_upcoming">Upcoming</string>
+    <string name="smart_list_no_date">No date</string>
+    <string name="smart_list_all">All</string>
+
+    <string name="task_marked_complete">Task marked complete</string>
+    <string name="notification_channel_reminders_name">Task reminders</string>
+    <string name="notification_channel_reminders_desc">Notifications for upcoming and due tasks</string>
+</resources>
