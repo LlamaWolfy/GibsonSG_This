@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Draw
 import androidx.compose.material.icons.filled.PanTool
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +51,7 @@ import kotlinx.coroutines.launch
  * only ever show a small read-only ink preview; this is where writing happens. A stylus
  * strike-through over a task row here completes that task instead of being saved as ink.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DayDetailSheet(
     date: LocalDate,

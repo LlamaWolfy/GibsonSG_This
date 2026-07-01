@@ -1,5 +1,6 @@
 package com.gibsonsg.todo.feature.calendar.component
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.gibsonsg.todo.core.domain.model.Task
 import java.time.LocalDate
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DayCell(
     date: LocalDate,
